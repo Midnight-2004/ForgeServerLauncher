@@ -100,6 +100,24 @@ public class ForgeServerLauncher {
     }
 
     /**
+     * 判断目录是否为有效的版本目录
+     * @param dir 目录对象
+     * @return 是否为有效版本目录
+     */
+    private static boolean isValidVersionDirectory(File dir) {
+        String name = dir.getName();
+        // Forge 版本号格式：如 "1.20.1-47.4.0"
+        if (name.contains("forge")) {
+            return name.matches("\\d+\\.\\d+\\.\\d+-\\d+\\.\\d+");
+        }
+        // NeoForge 版本号格式：如 "21.1.170"
+        if (name.contains("neoforged")) {
+            return name.matches("\\d+\\.\\d+\\.\\d+");
+        }
+        return false;
+    }
+
+    /**
      * 查找指定目录中的所有版本目录
      * @param parentDir 父目录
      * @return 包含所有版本目录的列表
@@ -112,36 +130,12 @@ public class ForgeServerLauncher {
             return versionDirs; // 返回空列表
         }
         for (File dir : files) {
-            // 如果是目录且名称包含"neoforged"或"forge"，则添加到列表中
-            if (dir.isDirectory() && (dir.getName().contains("neoforged") || dir.getName().contains("forge"))) {
+            // 如果是目录且名称符合版本号格式，则添加到列表中
+            if (dir.isDirectory() && isValidVersionDirectory(dir)) {
                 versionDirs.add(dir);
             }
         }
         return versionDirs;
-    } 
-
-    /**
-     * 从版本目录列表中获取最新的版本目录
-     * @param versionDirs 版本目录列表
-     * @return 最新的版本目录
-     */
-    private static File getLatestVersionDirectory(List<File> versionDirs) {
-        if (versionDirs.isEmpty()) {
-            throw new IllegalArgumentException("Version directory list is empty.");
-        }
-
-        File latestVersionDir = null;
-        int[] latestVersionNumbers = new int[0];
-
-        for (File dir : versionDirs) {
-            int[] versionNumbers = extractVersionNumberParts(dir);
-            if (latestVersionDir == null || compareVersionNumbers(versionNumbers, latestVersionNumbers) > 0) {
-                latestVersionDir = dir;
-                latestVersionNumbers = versionNumbers;
-            }
-        }
-
-        return latestVersionDir;
     }
 
     /**
@@ -165,6 +159,30 @@ public class ForgeServerLauncher {
             versionNumbers[i] = Integer.parseInt(versionParts[i].replaceAll("[^\\d]", ""));
         }
         return versionNumbers;
+    }
+
+    /**
+     * 从版本目录列表中获取最新的版本目录
+     * @param versionDirs 版本目录列表
+     * @return 最新的版本目录
+     */
+    private static File getLatestVersionDirectory(List<File> versionDirs) {
+        if (versionDirs.isEmpty()) {
+            throw new IllegalArgumentException("Version directory list is empty.");
+        }
+
+        File latestVersionDir = null;
+        int[] latestVersionNumbers = new int[0];
+
+        for (File dir : versionDirs) {
+            int[] versionNumbers = extractVersionNumberParts(dir);
+            if (latestVersionDir == null || compareVersionNumbers(versionNumbers, latestVersionNumbers) > 0) {
+                latestVersionDir = dir;
+                latestVersionNumbers = versionNumbers;
+            }
+        }
+
+        return latestVersionDir;
     }
 
     /**
