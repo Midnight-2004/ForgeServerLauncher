@@ -99,24 +99,28 @@ public class ForgeServerLauncher {
         }
     }
 
-    /**
-     * 判断目录是否为有效的版本目录
-     * @param dir 目录对象
-     * @return 是否为有效版本目录
-     */
+        /**
+        * 判断目录是否为有效的版本目录
+        * @param dir 目录对象
+        * @return 是否为有效版本目录
+        */
     private static boolean isValidVersionDirectory(File dir) {
-        String name = dir.getName();
-        // Forge 版本号格式：如 "1.20.1-47.4.0"
-        if (name.contains("forge")) {
-            return name.matches("\\d+\\.\\d+\\.\\d+-\\d+\\.\\d+");
+        File parent = dir.getParentFile();
+        if (parent == null) return false;
+
+        String parentName = parent.getName();
+
+        // 如果父目录是 forge，则使用 Forge 版本号格式校验
+        if ("forge".equals(parentName)) {
+            return dir.getName().matches("\\d+\\.\\d+\\.\\d+-\\d+\\.\\d+");
         }
-        // NeoForge 版本号格式：如 "21.1.170"
-        if (name.contains("neoforged")) {
-            return name.matches("\\d+\\.\\d+\\.\\d+");
+        // 如果父目录是 neoforge，则使用 NeoForge 版本号格式校验
+        else if ("neoforge".equals(parentName)) {
+            return dir.getName().matches("\\d+\\.\\d+\\.\\d+");
         }
+
         return false;
     }
-
     /**
      * 查找指定目录中的所有版本目录
      * @param parentDir 父目录
