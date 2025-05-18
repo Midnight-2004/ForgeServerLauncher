@@ -121,6 +121,30 @@ public class ForgeServerLauncher {
     } 
 
     /**
+     * 从版本目录列表中获取最新的版本目录
+     * @param versionDirs 版本目录列表
+     * @return 最新的版本目录
+     */
+    private static File getLatestVersionDirectory(List<File> versionDirs) {
+        if (versionDirs.isEmpty()) {
+            throw new IllegalArgumentException("Version directory list is empty.");
+        }
+
+        File latestVersionDir = null;
+        int[] latestVersionNumbers = new int[0];
+
+        for (File dir : versionDirs) {
+            int[] versionNumbers = extractVersionNumberParts(dir);
+            if (latestVersionDir == null || compareVersionNumbers(versionNumbers, latestVersionNumbers) > 0) {
+                latestVersionDir = dir;
+                latestVersionNumbers = versionNumbers;
+            }
+        }
+
+        return latestVersionDir;
+    }
+
+    /**
      * 从目录名称中提取版本号部分
      * @param dir 目录对象
      * @return 版本号数组
@@ -141,6 +165,24 @@ public class ForgeServerLauncher {
             versionNumbers[i] = Integer.parseInt(versionParts[i].replaceAll("[^\\d]", ""));
         }
         return versionNumbers;
+    }
+
+    /**
+     * 比较两个版本号数组
+     * @param v1 第一个版本号数组
+     * @param v2 第二个版本号数组
+     * @return v1 > v2 返回1，v1 < v2 返回-1，v1 == v2 返回0
+     */
+    private static int compareVersionNumbers(int[] v1, int[] v2) {
+        int minLength = Math.min(v1.length, v2.length);
+        for (int i = 0; i < minLength; i++) {
+            if (v1[i] > v2[i]) {
+                return 1;
+            } else if (v1[i] < v2[i]) {
+                return -1;
+            }
+        }
+        return Integer.compare(v1.length, v2.length);
     }
 
     /**
