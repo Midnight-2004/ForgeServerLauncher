@@ -29,6 +29,8 @@
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
+                    <!-- 确保生成的 JAR 文件名与 finalName 一致 -->
+                    <finalName>${project.build.finalName}</finalName>
                 </configuration>
             </plugin>
 
