@@ -1,0 +1,56 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>ForgeServerLauncher</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Forge Server Launcher</name>
+    <description>A launcher for Forge/NeoForge Minecraft servers</description>
+    <url>https://example.com</url>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <finalName>forge-server-launcher</finalName>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- 打包可执行 JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>ForgeServerLauncher</mainClass>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- 打包所有依赖进 JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>shade</goal></goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>ForgeServerLauncher</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
