@@ -12,10 +12,16 @@ public class ForgeServerLauncher {
 
         List<File> versionDirs = new ArrayList<>();
         if (neoforgeDir.exists() && neoforgeDir.isDirectory()) {
-        versionDirs.addAll(findVersionDirectories(neoforgeDir));
+            System.out.println("Found NeoForge directory: " + neoforgeDir.getAbsolutePath());
+            versionDirs.addAll(findVersionDirectories(neoforgeDir));
+        } else {
+            System.out.println("NeoForge directory not found or is not a directory: " + neoforgeDir.getAbsolutePath());
         }  
         if (forgeDir.exists() && forgeDir.isDirectory()) {
-        versionDirs.addAll(findVersionDirectories(forgeDir));
+            System.out.println("Found Forge directory: " + forgeDir.getAbsolutePath());
+            versionDirs.addAll(findVersionDirectories(forgeDir));
+        } else {
+            System.out.println("Forge directory not found or is not a directory: " + forgeDir.getAbsolutePath());
         }
 
         if (versionDirs.isEmpty()) {
@@ -54,25 +60,27 @@ public class ForgeServerLauncher {
             // 使用 try-with-resources 关闭输入流和错误流
             try (BufferedReader reader = new BufferedReader(
                      new InputStreamReader(process.getInputStream()));
-                BufferedReader errorReader = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()))) {
+                 BufferedReader errorReader = new BufferedReader(
+                     new InputStreamReader(process.getErrorStream()))) {
 
                 String line;
                 while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+                    System.out.println(line);
+                }
+
+                // 可选：打印错误输出，便于调试
+                while ((line = errorReader.readLine()) != null) {
+                    System.err.println("ERROR: " + line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            // 可选：打印错误输出，便于调试
-            while ((line = errorReader.readLine()) != null) {
-                System.err.println("ERROR: " + line);
+            int exitCode = process.waitFor();
+            System.out.println("Process exited with code: " + exitCode);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
         }
-
-        int exitCode = process.waitFor();
-        System.out.println("Process exited with code: " + exitCode);
-    }
-} catch (IOException | InterruptedException e) {
-    e.printStackTrace();
-}
     }
 
     private static List<File> findVersionDirectories(File parentDir) {
