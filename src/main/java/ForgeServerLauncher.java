@@ -10,6 +10,9 @@ public class ForgeServerLauncher {
      * 并尝试从该目录启动相应的游戏版本
      */
     public static void main(String[] args) {
+        // 输出当前工作目录
+        System.out.println("Current working directory: " + new File(".").getAbsolutePath());
+
         // 定义NeoForge和Forge的路径
         String neoforgePath = "libraries/net/neoforged/neoforge";
         String forgePath = "libraries/net/minecraftforge/forge";
@@ -109,18 +112,23 @@ public class ForgeServerLauncher {
         if (parent == null) return false;
 
         String parentName = parent.getName();
+        String dirName = dir.getName();
 
-        // 如果父目录是 forge，则使用 Forge 版本号格式校验
+        // 如果父目录是 forge，则尝试匹配 Forge 格式
         if ("forge".equals(parentName)) {
-            return dir.getName().matches("\\d+\\.\\d+\\.\\d+-\\d+\\.\\d+");
+            return dirName.matches("(?i).*\\d+.*") && 
+                   dirName.contains("-") && 
+                   dirName.split("-")[1].matches("\\d+(\\.\\d+)+");
         }
-        // 如果父目录是 neoforge，则使用 NeoForge 版本号格式校验
-        else if ("neoforge".equals(parentName)) {
-            return dir.getName().matches("\\d+\\.\\d+\\.\\d+");
+    
+        // 如果父目录是 neoforge，则尝试匹配 NeoForge 格式
+        if ("neoforge".equals(parentName)) {
+            return dirName.matches("\\d+(\\.\\d+)+");
         }
-
+        
         return false;
     }
+
     /**
      * 查找指定目录中的所有版本目录
      * @param parentDir 父目录
@@ -134,9 +142,11 @@ public class ForgeServerLauncher {
             return versionDirs; // 返回空列表
         }
         for (File dir : files) {
-            // 如果是目录且名称符合版本号格式，则添加到列表中
-            if (dir.isDirectory() && isValidVersionDirectory(dir)) {
-                versionDirs.add(dir);
+            if (dir.isDirectory()) {
+                System.out.println("Checking version directory candidate: " + dir.getAbsolutePath());
+                if (isValidVersionDirectory(dir)) {
+                    versionDirs.add(dir);
+                }
             }
         }
         return versionDirs;
