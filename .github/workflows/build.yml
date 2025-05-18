@@ -32,8 +32,8 @@ jobs:
           echo "Listing target directory:"
           ls -la target/
 
-      - name: 📤 Upload JAR as artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload JAR as artifact
+        uses: actions/upload-artifact@v4
         with:
           name: forge-server-launcher
           path: target/forge-server-launcher.jar
