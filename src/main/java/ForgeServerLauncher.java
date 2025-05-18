@@ -4,8 +4,8 @@ import java.util.*;
 public class ForgeServerLauncher {
 
     public static void main(String[] args) {
-        String neoforgePath = "./libraries/net/neoforged/neoforge";
-        String forgePath = "./libraries/net/minecraftforge/forge";
+        String neoforgePath = "libraries/net/neoforged/neoforge";
+        String forgePath = "libraries/net/minecraftforge/forge";
 
         File neoforgeDir = new File(neoforgePath);
         File forgeDir = new File(forgePath);
