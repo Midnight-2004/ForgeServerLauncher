@@ -63,6 +63,9 @@ public class ForgeServerLauncher {
             return;
         }
 
+        // 添加命令行参数到启动参数列表
+        launchArguments.addAll(Arrays.asList(args));
+
         try {
             // 使用ProcessBuilder启动游戏进程，逐个传递参数
             ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
