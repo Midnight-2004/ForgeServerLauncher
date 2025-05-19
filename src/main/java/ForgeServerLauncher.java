@@ -90,7 +90,7 @@ public class ForgeServerLauncher {
 
         for (int i = 1; i < fullCommandLine.size(); i++) {
             String arg = fullCommandLine.get(i);
-            if (arg.equals("-jar")) {
+            if ("-jar".equals(arg)) {
                 jarIndex = i + 1;
                 break;
             }
@@ -114,13 +114,18 @@ public class ForgeServerLauncher {
         finalArguments.add(javaPath);       // 使用真实 java 路径
         finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
 
+        boolean skipNext = (jarIndex != -1);
+        String noguiArg = null;
+
         for (String arg : args) {
             if (skipNext) {
                 skipNext = false;
                 continue;
             }
 
-            if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg)) {
+            if ("-jar".equals(arg)) {
+                skipNext = true;
+            } else if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg)) {
                 noguiArg = arg;
             } else {
                 finalArguments.add(arg);
@@ -365,7 +370,7 @@ public class ForgeServerLauncher {
         }
 
             // 在最前面插入 java 命令
-            arguments.add(0, javaPath);
+            //arguments.add(0, javaPath);
 
         return arguments;
     }
