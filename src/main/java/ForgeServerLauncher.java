@@ -3,6 +3,8 @@ import java.util.*;
 import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.lang.ProcessHandle;
+import java.util.List;
 
 public class ForgeServerLauncher {
 
@@ -66,10 +68,56 @@ public class ForgeServerLauncher {
             return;
         }
 
+       // 获取当前进程信息
+        ProcessHandle currentProcess = ProcessHandle.current();
+        Optional<ProcessHandle.Info> info = currentProcess.info();
+
+        // 获取完整的命令行参数
+        List<String> fullCommandLine = info.flatMap(ProcessHandle.Info::arguments)
+                                            .map(Arrays::asList)
+                                            .orElse(Collections.emptyList())
+        
+        if (fullCommandLine.isEmpty()) {
+            System.err.println("Failed to retrieve command line arguments.");
+            return;
+        }
+
+        // 提取 Java 路径
+        String javaPath = fullCommandLine.get(0);
+
+        // 提取 JVM 参数（直到 -jar 为止）
+        List<String> jvmArgs = new ArrayList<>();
+        int jarIndex = -1;
+
+        for (int i = 1; i < fullCommandLine.size(); i++) {
+            String arg = fullCommandLine.get(i);
+            if (arg.equals("-jar")) {
+                jarIndex = i + 1;
+                break;
+            }
+            jvmArgs.add(arg);
+        }
+
         // 处理传入的额外参数，跳过-jar及其后的一个参数
         List<String> additionalArgs = new ArrayList<>();
         String noguiArg = null;
         boolean skipNext = false;
+
+        // 添加 JVM 参数（如 -Xmx4G）
+        for (String arg : jvmArgs) {
+            if (arg.startsWith("-X") || arg.startsWith("--")) {
+                additionalArgs.add(arg);
+            }
+        }
+
+        // 构造最终参数列表
+        List<String> finalArguments = new ArrayList<>();
+        finalArguments.add(javaPath);       // 使用真实 java 路径
+        finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
+
+        // 添加用户传入的额外参数（排除 -jar 和其后参数）
+        String noguiArg = null;
+        boolean skipNext = (jarIndex != -1);
 
         for (String arg : args) {
             if (skipNext) {
@@ -77,26 +125,17 @@ public class ForgeServerLauncher {
                 continue;
             }
 
-            if ("-jar".equals(arg)) {
-                skipNext = true;
-            } else if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg)) {
+            if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg)) {
                 noguiArg = arg;
             } else {
-                additionalArgs.add(arg);
+                finalArguments.add(arg);
             }
         }
 
-        // 构造最终参数列表
-        List<String> finalArguments = new ArrayList<>();
-        finalArguments.add(launchArguments.get(0)); // java 命令
-
-        // 插入用户指定的参数（除了 nogui）
-        finalArguments.addAll(additionalArgs);
-
-        // 添加原始参数（来自 unix_args.txt）
+        // 添加来自 unix_args.txt 的参数（去掉第一个 "java"）
         finalArguments.addAll(launchArguments.subList(1, launchArguments.size()));
 
-        // 最后加上 nogui
+        // 最后再加 nogui（如果有的话）
         if (noguiArg != null) {
             finalArguments.add(noguiArg);
         }
@@ -331,7 +370,7 @@ public class ForgeServerLauncher {
         }
 
             // 在最前面插入 java 命令
-            arguments.add(0, "java");
+            //arguments.add(0, "java");
 
         return arguments;
     }
