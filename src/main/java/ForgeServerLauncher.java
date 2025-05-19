@@ -63,8 +63,21 @@ public class ForgeServerLauncher {
             return;
         }
 
-        // 添加命令行参数到启动参数列表
-        launchArguments.addAll(Arrays.asList(args));
+        // 提取命令行参数并跳过-jar和.jar文件名
+        List<String> additionalArgs = new ArrayList<>();
+        boolean skipNext = false;
+        for (String arg : args) {
+            if ("-jar".equals(arg)) {
+                skipNext = true; // 跳过-jar后的.jar文件名
+            } else if (skipNext) {
+                skipNext = false; // 跳过.jar文件名
+            } else {
+                additionalArgs.add(arg); // 添加其他参数
+            }
+        }
+
+        // 将提取的参数添加到启动参数列表
+        launchArguments.addAll(additionalArgs);
 
         try {
             // 使用ProcessBuilder启动游戏进程，逐个传递参数
@@ -238,10 +251,20 @@ public class ForgeServerLauncher {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // 按空格拆分参数，并去除多余空格
-                String[] parts = line.trim().split("\\s+");
-                arguments.addAll(Arrays.asList(parts));
+                // 按空格拆分参数，保留带引号的参数整体
+                Matcher matcher = Pattern.compile("[^\\s\"]+|\"([^\"]*)\"").matcher(line.trim());
+                while (matcher.find()) {
+                    String match = matcher.group(1); // 兼容带引号内容
+                    if (match != null && !match.isEmpty()) {
+                        arguments.add(match);
+                    } else if (!matcher.group().isEmpty()) {
+                        arguments.add(matcher.group());
+                    }
+                }
             }
+
+            // 在最前面插入 java 命令
+            arguments.add(0, "java");
         } catch (IOException e) {
             e.printStackTrace();
         }
