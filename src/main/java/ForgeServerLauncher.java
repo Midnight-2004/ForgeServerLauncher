@@ -111,9 +111,6 @@ public class ForgeServerLauncher {
 
         // 构造最终参数列表
         List<String> finalArguments = new ArrayList<>();
-        boolean skipNext = false;
-        String noguiArg = null;
-
         finalArguments.add(javaPath);       // 使用真实 java 路径
         finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
 
