@@ -68,7 +68,8 @@ public class ForgeServerLauncher {
             return;
         }
 
-       // 获取当前进程信息与命令行参数
+        // 获取当前进程信息与命令行参数
+        ProcessHandle currentProcess = ProcessHandle.current();
         ProcessHandle.Info info = currentProcess.info();
         List<String> fullCommandLine = Optional.ofNullable(info)
                                             .flatMap(ProcessHandle.Info::arguments)
