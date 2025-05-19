@@ -75,7 +75,7 @@ public class ForgeServerLauncher {
         // 获取完整的命令行参数
         List<String> fullCommandLine = info.flatMap(ProcessHandle.Info::arguments)
                                             .map(Arrays::asList)
-                                            .orElse(Collections.emptyList())
+                                            .orElse(Collections.emptyList());
         
         if (fullCommandLine.isEmpty()) {
             System.err.println("Failed to retrieve command line arguments.");
