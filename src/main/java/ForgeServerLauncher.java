@@ -68,12 +68,10 @@ public class ForgeServerLauncher {
             return;
         }
 
-       // 获取当前进程信息
-        ProcessHandle currentProcess = ProcessHandle.current();
-        Optional<ProcessHandle.Info> info = currentProcess.info();
-
-        // 获取完整的命令行参数
-        List<String> fullCommandLine = info.flatMap(ProcessHandle.Info::arguments)
+       // 获取当前进程信息与命令行参数
+        ProcessHandle.Info info = currentProcess.info();
+        List<String> fullCommandLine = Optional.ofNullable(info)
+                                            .flatMap(ProcessHandle.Info::arguments)
                                             .map(Arrays::asList)
                                             .orElse(Collections.emptyList());
         
@@ -114,10 +112,6 @@ public class ForgeServerLauncher {
         List<String> finalArguments = new ArrayList<>();
         finalArguments.add(javaPath);       // 使用真实 java 路径
         finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
-
-        // 添加用户传入的额外参数（排除 -jar 和其后参数）
-        String noguiArg = null;
-        boolean skipNext = (jarIndex != -1);
 
         for (String arg : args) {
             if (skipNext) {
