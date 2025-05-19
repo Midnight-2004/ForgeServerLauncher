@@ -93,21 +93,46 @@ public class ForgeServerLauncher {
 
             Process process = processBuilder.start();
 
-            // 读取并打印子进程的标准输出和错误输出
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-
+            // 线程 1：读取子进程 stdout 并打印
+            new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     System.out.println(line);
                 }
-
-                while ((line = errorReader.readLine()) != null) {
-                    System.err.println("ERROR: " + line);
-                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            }).start();
+
+            // 线程 2：读取子进程 stderr 并打印
+            new Thread(() -> {
+                try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String line;
+                    while ((line = errorReader.readLine()) != null) {
+                        System.err.println("ERROR: " + line);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // 线程 3：读取控制台输入，并写入子进程 stdin
+            new Thread(() -> {
+                try (InputStream userInput = System.in;
+                    OutputStream processInput = process.getOutputStream()) {
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+
+                    while ((bytesRead = userInput.read(buffer)) != -1) {
+                        processInput.write(buffer, 0, bytesRead);
+                        processInput.flush();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
             // 等待子进程结束并获取退出码
             int exitCode = process.waitFor();
