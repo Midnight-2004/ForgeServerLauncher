@@ -82,30 +82,38 @@ public class ForgeServerLauncher {
         launchArguments.addAll(additionalArgs);
 
         try {
-            // 使用ProcessBuilder启动游戏进程，逐个传递参数
+            // 获取当前 JAR 文件所在的目录
+            File jarDir = new File(ForgeServerLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+
+            // 使用 JAR 所在目录作为工作目录
             ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
-            processBuilder.directory(latestVersionDir);
+            processBuilder.directory(jarDir);  // 改成 JAR 所在目录
+
             Process process = processBuilder.start();
 
             // 使用 try-with-resources 关闭输入流和错误流
             try (BufferedReader reader = new BufferedReader(
-                     new InputStreamReader(process.getInputStream()));
-                 BufferedReader errorReader = new BufferedReader(
-                     new InputStreamReader(process.getErrorStream()))) {
+                    new InputStreamReader(process.getInputStream()));
+                BufferedReader errorReader = new BufferedReader(
+                    new InputStreamReader(process.getErrorStream()))) {
 
                 String line;
-                // 读取并打印进程的标准输出
                 while ((line = reader.readLine()) != null) {
                     System.out.println(line);
                 }
 
-                // 可选：打印错误输出，便于调试
                 while ((line = errorReader.readLine()) != null) {
                     System.err.println("ERROR: " + line);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            int exitCode = process.waitFor();
+            System.out.println("Process exited with code: " + exitCode);
+        } catch (IOException | InterruptedException | URISyntaxException e) {
+            e.printStackTrace();
+        }
 
             // 等待进程结束并获取退出码
             int exitCode = process.waitFor();
