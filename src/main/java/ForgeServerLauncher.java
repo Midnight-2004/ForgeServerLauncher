@@ -68,19 +68,42 @@ public class ForgeServerLauncher {
 
         // 处理传入的额外参数，跳过-jar及其后的一个参数
         List<String> additionalArgs = new ArrayList<>();
+        String noguiArg = null;
         boolean skipNext = false;
+
         for (String arg : args) {
+            if (skipNext) {
+                skipNext = false;
+                continue;
+            }
+
             if ("-jar".equals(arg)) {
                 skipNext = true;
-            } else if (skipNext) {
-                skipNext = false;
+            } else if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg)) {
+                noguiArg = arg;
             } else {
                 additionalArgs.add(arg);
             }
         }
 
-        // 将额外参数添加到启动参数列表中
-        launchArguments.addAll(additionalArgs);
+        // 构造最终参数列表
+        List<String> finalArguments = new ArrayList<>();
+        finalArguments.add(launchArguments.get(0)); // java 命令
+
+        // 插入用户指定的参数（除了 nogui）
+        finalArguments.addAll(additionalArgs);
+
+        // 添加原始参数（来自 unix_args.txt）
+        finalArguments.addAll(launchArguments.subList(1, launchArguments.size()));
+
+        // 最后加上 nogui
+        if (noguiArg != null) {
+            finalArguments.add(noguiArg);
+        }
+
+        // 替换 launchArguments
+        launchArguments.clear();
+        launchArguments.addAll(finalArguments);
 
         try {
             // 获取JAR文件所在目录并设置为工作目录
@@ -308,7 +331,7 @@ public class ForgeServerLauncher {
         }
 
             // 在最前面插入 java 命令
-            //arguments.add(0, "java");
+            arguments.add(0, "java");
 
         return arguments;
     }
