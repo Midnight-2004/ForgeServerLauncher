@@ -114,7 +114,7 @@ public class ForgeServerLauncher {
 
         // 添加 JVM 参数（如 -Xmx4G）
         for (String arg : jvmArgs) {
-            if (arg.startsWith("-X") || arg.startsWith("--") || arg.startsWith("-D"))) {
+            if (arg.startsWith("-X") || arg.startsWith("--") || arg.startsWith("-D")) {
                 additionalArgs.add(arg);
             }
         }
