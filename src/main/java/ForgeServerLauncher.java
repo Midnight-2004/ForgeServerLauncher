@@ -76,13 +76,23 @@ public class ForgeServerLauncher {
                                             .map(Arrays::asList)
                                             .orElse(Collections.emptyList());
         
+        String javaExecutable;
+
         if (fullCommandLine.isEmpty()) {
             System.err.println("Failed to retrieve command line arguments.");
             return;
         }
 
-        // 提取 Java 路径
-        String javaPath = fullCommandLine.get(0);
+        if (info.command().isPresent()) {
+            // 直接使用当前运行的 Java 可执行路径（如 /usr/bin/java 或 C:\...\java.exe）
+            javaExecutable = info.command().get();
+            System.out.println("Using Java from current process: " + javaExecutable);
+        } else {
+            // 回退到 Java Home
+            String javaHome = System.getProperty("java.home");
+            javaExecutable = javaHome + File.separator + "bin" + File.separator + "java";
+            System.out.println("Falling back to JAVA_HOME: " + javaExecutable);
+        }
 
         // 提取 JVM 参数（直到 -jar 为止）
         List<String> jvmArgs = new ArrayList<>();
@@ -111,7 +121,7 @@ public class ForgeServerLauncher {
 
         // 构造最终参数列表
         List<String> finalArguments = new ArrayList<>();
-        finalArguments.add(javaPath);       // 使用真实 java 路径
+        finalArguments.add(javaExecutable);       // 使用真实 java 路径
         finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
 
         skipNext = (jarIndex != -1);
@@ -132,8 +142,8 @@ public class ForgeServerLauncher {
             }
         }
 
-        // 添加来自 unix_args.txt 的参数（去掉第一个 "java"）
-        finalArguments.addAll(launchArguments.subList(1, launchArguments.size()));
+        // 添加来自 unix_args.txt 的参数
+        finalArguments.addAll(launchArguments);
 
         // 最后再加 nogui（如果有的话）
         if (noguiArg != null) {
@@ -370,7 +380,7 @@ public class ForgeServerLauncher {
         }
 
             // 在最前面插入 java 命令
-            //arguments.add(0, javaPath);
+            //arguments.add(0, "java");
 
         return arguments;
     }
