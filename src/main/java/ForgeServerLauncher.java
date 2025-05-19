@@ -56,21 +56,16 @@ public class ForgeServerLauncher {
             return;
         }
 
-        // 获取unix_args.txt文件的绝对路径
-        String unixArgsFilePath = unixArgsFile.getAbsolutePath();
-        // 将路径写入到version.txt文件中
-        writeToFile("libraries/version.txt", unixArgsFilePath);
-
-        // 从unix_args.txt文件中读取启动命令
-        String launchCommand = readFromFile(unixArgsFilePath);
-        if (launchCommand == null) {
-            System.out.println("Failed to read unix_args.txt.");
+        // 从unix_args.txt文件中读取启动命令参数
+        List<String> launchArguments = readArgumentsFromFile(unixArgsFile.getAbsolutePath());
+        if (launchArguments.isEmpty()) {
+            System.out.println("Failed to read arguments from unix_args.txt.");
             return;
         }
 
         try {
-            // 使用ProcessBuilder启动游戏进程
-            ProcessBuilder processBuilder = new ProcessBuilder("/bin/sh", "-c", launchCommand);
+            // 使用ProcessBuilder启动游戏进程，逐个传递参数
+            ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
             processBuilder.directory(latestVersionDir);
             Process process = processBuilder.start();
 
@@ -228,6 +223,26 @@ public class ForgeServerLauncher {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 从文件中读取内容并按空格拆分为参数列表
+     * @param filePath 文件路径
+     * @return 参数列表
+     */
+    private static List<String> readArgumentsFromFile(String filePath) {
+        List<String> arguments = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // 按空格拆分参数，并去除多余空格
+                String[] parts = line.trim().split("\\s+");
+                arguments.addAll(Arrays.asList(parts));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return arguments;
     }
 
     /**
