@@ -111,11 +111,14 @@ public class ForgeServerLauncher {
 
         // 构造最终参数列表
         List<String> finalArguments = new ArrayList<>();
+        boolean skipNext = false;
+        String noguiArg = null;
+
         finalArguments.add(javaPath);       // 使用真实 java 路径
         finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
 
-        boolean skipNext = (jarIndex != -1);
-        String noguiArg = null;
+        skipNext = (jarIndex != -1);
+        noguiArg = null;
 
         for (String arg : args) {
             if (skipNext) {
@@ -125,7 +128,7 @@ public class ForgeServerLauncher {
 
             if ("-jar".equals(arg)) {
                 skipNext = true;
-            } else if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg)) {
+            } else if ("nogui".equalsIgnoreCase(arg) || "-nogui".equalsIgnoreCase(arg) || "--nogui".equalsIgnoreCase(arg)) {
                 noguiArg = arg;
             } else {
                 finalArguments.add(arg);
