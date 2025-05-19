@@ -13,16 +13,21 @@ public class ForgeServerLauncher {
      * 并尝试从该目录启动相应的游戏版本
      */
     public static void main(String[] args) {
+        // 打印当前工作目录，用于调试和确认程序运行环境
         System.out.println("Current working directory: " + new File(".").getAbsolutePath());
 
+        // 定义Forge和NeoForge的目录路径
         String neoforgePath = "libraries/net/neoforged/neoforge";
         String forgePath = "libraries/net/minecraftforge/forge";
 
+        // 创建Forge和NeoForge目录对象
         File neoforgeDir = new File(neoforgePath);
         File forgeDir = new File(forgePath);
 
+        // 存储所有找到的版本目录
         List<File> versionDirs = new ArrayList<>();
 
+        // 检查NeoForge目录是否存在并添加符合条件的版本目录
         if (neoforgeDir.exists() && neoforgeDir.isDirectory()) {
             System.out.println("Found NeoForge directory: " + neoforgeDir.getAbsolutePath());
             versionDirs.addAll(findVersionDirectories(neoforgeDir));
@@ -30,6 +35,7 @@ public class ForgeServerLauncher {
             System.out.println("NeoForge directory not found or is not a directory: " + neoforgeDir.getAbsolutePath());
         }
 
+        // 检查Forge目录是否存在并添加符合条件的版本目录
         if (forgeDir.exists() && forgeDir.isDirectory()) {
             System.out.println("Found Forge directory: " + forgeDir.getAbsolutePath());
             versionDirs.addAll(findVersionDirectories(forgeDir));
@@ -37,25 +43,30 @@ public class ForgeServerLauncher {
             System.out.println("Forge directory not found or is not a directory: " + forgeDir.getAbsolutePath());
         }
 
+        // 如果没有找到任何有效的版本目录，打印提示并退出程序
         if (versionDirs.isEmpty()) {
             System.out.println("No valid version directories found.");
             return;
         }
 
+        // 获取最新的版本目录
         File latestVersionDir = getLatestVersionDirectory(versionDirs);
 
+        // 定位并读取unix_args.txt文件
         File unixArgsFile = new File(latestVersionDir, "unix_args.txt");
         if (!unixArgsFile.exists()) {
             System.out.println("unix_args.txt not found in the latest version directory.");
             return;
         }
 
+        // 从文件中读取启动参数
         List<String> launchArguments = readArgumentsFromFile(unixArgsFile.getAbsolutePath());
         if (launchArguments.isEmpty()) {
             System.out.println("Failed to read arguments from unix_args.txt.");
             return;
         }
 
+        // 处理传入的额外参数，跳过-jar及其后的一个参数
         List<String> additionalArgs = new ArrayList<>();
         boolean skipNext = false;
         for (String arg : args) {
@@ -68,18 +79,21 @@ public class ForgeServerLauncher {
             }
         }
 
+        // 将额外参数添加到启动参数列表中
         launchArguments.addAll(additionalArgs);
 
         try {
-            // ✅ 获取 JAR 文件所在目录并设置为工作目录
+            // 获取JAR文件所在目录并设置为工作目录
             File jarDir = new File(ForgeServerLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
             System.out.println("Working directory for subprocess: " + jarDir.getAbsolutePath());
 
+            // 使用ProcessBuilder启动子进程
             ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
-            processBuilder.directory(jarDir); // 设置为 JAR 所在目录
+            processBuilder.directory(jarDir); // 设置工作目录
 
             Process process = processBuilder.start();
 
+            // 读取并打印子进程的标准输出和错误输出
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                  BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
@@ -95,6 +109,7 @@ public class ForgeServerLauncher {
                 e.printStackTrace();
             }
 
+            // 等待子进程结束并获取退出码
             int exitCode = process.waitFor();
             System.out.println("Process exited with code: " + exitCode);
         } catch (IOException | InterruptedException | URISyntaxException e) {
@@ -240,23 +255,31 @@ public class ForgeServerLauncher {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // 按空格拆分参数，保留带引号的参数整体
                 Matcher matcher = Pattern.compile("[^\\s\"]+|\"([^\"]*)\"").matcher(line.trim());
                 while (matcher.find()) {
-                    String match = matcher.group(1); // 兼容带引号内容
-                    if (match != null && !match.isEmpty()) {
-                        arguments.add(match);
-                    } else if (!matcher.group().isEmpty()) {
-                        arguments.add(matcher.group());
+                    String token = matcher.group(1) != null ? matcher.group(1) : matcher.group();
+
+                    // 处理 @argfile 语法
+                    if (token.startsWith("@")) {
+                        String argFilePath = token.substring(1);
+                        File argFile = new File(argFilePath);
+                        if (argFile.exists()) {
+                            arguments.addAll(readArgumentsFromFile(argFile.getAbsolutePath()));
+                        } else {
+                            System.err.println("Arg file not found: " + argFilePath);
+                        }
+                    } else {
+                        arguments.add(token);
                     }
                 }
             }
-
-            // 在最前面插入 java 命令
-            arguments.add(0, "java");
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+            // 在最前面插入 java 命令
+            arguments.add(0, "java");
+
         return arguments;
     }
 
