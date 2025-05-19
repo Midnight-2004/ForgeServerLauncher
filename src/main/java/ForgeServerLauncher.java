@@ -365,7 +365,7 @@ public class ForgeServerLauncher {
         }
 
             // 在最前面插入 java 命令
-            //arguments.add(0, "java");
+            arguments.add(0, javaPath);
 
         return arguments;
     }
