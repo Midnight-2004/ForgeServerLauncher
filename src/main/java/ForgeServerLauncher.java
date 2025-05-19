@@ -118,9 +118,10 @@ public class ForgeServerLauncher {
             }).start();
 
             // 线程 3：读取控制台输入，并写入子进程 stdin
-            new Thread(() -> {
-                try (InputStream userInput = System.in;
-                    OutputStream processInput = process.getOutputStream()) {
+            Thread inputThread = new Thread(() -> {
+                try {
+                    InputStream userInput = System.in;
+                    OutputStream processInput = process.getOutputStream();
 
                     byte[] buffer = new byte[1024];
                     int bytesRead;
@@ -130,14 +131,18 @@ public class ForgeServerLauncher {
                         processInput.flush();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    // 忽略或记录日志
                 }
-            }).start();
+            });
+            inputThread.setDaemon(true); // 守护线程，允许 JVM 主动退出
+            inputThread.start();
 
-            // 等待子进程结束并获取退出码
+            // 等待子进程结束并获取退出码然后强制结束进程
             int exitCode = process.waitFor();
             System.out.println("Process exited with code: " + exitCode);
-        } catch (IOException | InterruptedException | URISyntaxException e) {
+            System.exit(0);
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
