@@ -5,10 +5,10 @@
 
     <groupId>top.zeronight</groupId>
     <artifactId>ForgeServerLauncher</artifactId>
-    <version>1.0-beta.1</version>
+    <version>1.0.0</version>
     <name>Forge Server Launcher</name>
-    <description>A launcher for Forge/NeoForge Minecraft servers</description>
-    <url>https://www.wuye2004.top</url>
+    <description>A launcher for Forge/NeoForge Minecraft servers.</description>
+    <url>https://github.com/Midnight-2004/ForgeServerLauncher</url>
 
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
