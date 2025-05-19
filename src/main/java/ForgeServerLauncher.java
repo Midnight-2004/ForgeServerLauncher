@@ -1,7 +1,8 @@
 import java.io.*;
 import java.util.*;
-import java.util.regex.Matcher;  // 新增
-import java.util.regex.Pattern;  // 新增
+import java.net.URISyntaxException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ForgeServerLauncher {
 
@@ -12,29 +13,23 @@ public class ForgeServerLauncher {
      * 并尝试从该目录启动相应的游戏版本
      */
     public static void main(String[] args) {
-        // 输出当前工作目录
         System.out.println("Current working directory: " + new File(".").getAbsolutePath());
 
-        // 定义NeoForge和Forge的路径
         String neoforgePath = "libraries/net/neoforged/neoforge";
         String forgePath = "libraries/net/minecraftforge/forge";
 
-        // 创建File对象来表示NeoForge和Forge目录
         File neoforgeDir = new File(neoforgePath);
         File forgeDir = new File(forgePath);
 
-        // 用于存储所有版本目录的列表
         List<File> versionDirs = new ArrayList<>();
-        
-        // 检查NeoForge目录是否存在且为目录
+
         if (neoforgeDir.exists() && neoforgeDir.isDirectory()) {
             System.out.println("Found NeoForge directory: " + neoforgeDir.getAbsolutePath());
             versionDirs.addAll(findVersionDirectories(neoforgeDir));
         } else {
             System.out.println("NeoForge directory not found or is not a directory: " + neoforgeDir.getAbsolutePath());
-        }  
-        
-        // 检查Forge目录是否存在且为目录
+        }
+
         if (forgeDir.exists() && forgeDir.isDirectory()) {
             System.out.println("Found Forge directory: " + forgeDir.getAbsolutePath());
             versionDirs.addAll(findVersionDirectories(forgeDir));
@@ -42,60 +37,51 @@ public class ForgeServerLauncher {
             System.out.println("Forge directory not found or is not a directory: " + forgeDir.getAbsolutePath());
         }
 
-        // 如果没有找到任何有效的版本目录，输出提示并退出程序
         if (versionDirs.isEmpty()) {
             System.out.println("No valid version directories found.");
             return;
         }
 
-        // 获取最新的版本目录
         File latestVersionDir = getLatestVersionDirectory(versionDirs);
 
-        // 查找最新的版本目录中的unix_args.txt文件
         File unixArgsFile = new File(latestVersionDir, "unix_args.txt");
         if (!unixArgsFile.exists()) {
             System.out.println("unix_args.txt not found in the latest version directory.");
             return;
         }
 
-        // 从unix_args.txt文件中读取启动命令参数
         List<String> launchArguments = readArgumentsFromFile(unixArgsFile.getAbsolutePath());
         if (launchArguments.isEmpty()) {
             System.out.println("Failed to read arguments from unix_args.txt.");
             return;
         }
 
-        // 提取命令行参数并跳过-jar和.jar文件名
         List<String> additionalArgs = new ArrayList<>();
         boolean skipNext = false;
         for (String arg : args) {
             if ("-jar".equals(arg)) {
-                skipNext = true; // 跳过-jar后的.jar文件名
+                skipNext = true;
             } else if (skipNext) {
-                skipNext = false; // 跳过.jar文件名
+                skipNext = false;
             } else {
-                additionalArgs.add(arg); // 添加其他参数
+                additionalArgs.add(arg);
             }
         }
 
-        // 将提取的参数添加到启动参数列表
         launchArguments.addAll(additionalArgs);
 
         try {
-            // 获取当前 JAR 文件所在的目录
+            // ✅ 获取 JAR 文件所在目录并设置为工作目录
             File jarDir = new File(ForgeServerLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+            System.out.println("Working directory for subprocess: " + jarDir.getAbsolutePath());
 
-            // 使用 JAR 所在目录作为工作目录
             ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
-            processBuilder.directory(jarDir);  // 改成 JAR 所在目录
+            processBuilder.directory(jarDir); // 设置为 JAR 所在目录
 
             Process process = processBuilder.start();
 
-            // 使用 try-with-resources 关闭输入流和错误流
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-                BufferedReader errorReader = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()))) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -114,20 +100,13 @@ public class ForgeServerLauncher {
         } catch (IOException | InterruptedException | URISyntaxException e) {
             e.printStackTrace();
         }
-
-            // 等待进程结束并获取退出码
-            int exitCode = process.waitFor();
-            System.out.println("Process exited with code: " + exitCode);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
-        /**
-        * 判断目录是否为有效的版本目录
-        * @param dir 目录对象
-        * @return 是否为有效版本目录
-        */
+    /**
+     * 判断目录是否为有效的版本目录
+     * @param dir 目录对象
+     * @return 是否为有效版本目录
+     */
     private static boolean isValidVersionDirectory(File dir) {
         File parent = dir.getParentFile();
         if (parent == null) return false;
@@ -141,12 +120,12 @@ public class ForgeServerLauncher {
                    dirName.contains("-") && 
                    dirName.split("-")[1].matches("\\d+(\\.\\d+)+");
         }
-    
+
         // 如果父目录是 neoforge，则尝试匹配 NeoForge 格式
         if ("neoforge".equals(parentName)) {
             return dirName.matches("\\d+(\\.\\d+)+");
         }
-        
+
         return false;
     }
 
