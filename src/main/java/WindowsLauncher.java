@@ -156,7 +156,7 @@ public class WindowsLauncher {
 
         try {
             // 获取JAR文件所在目录并设置为工作目录
-            File jarDir = new File(ForgeServerLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
+            File jarDir = new File(WindowsLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
             System.out.println("Working directory for subprocess: " + jarDir.getAbsolutePath());
 
             // 使用ProcessBuilder启动子进程
