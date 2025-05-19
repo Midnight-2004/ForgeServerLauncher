@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import java.lang.ProcessHandle;
 import java.util.List;
 
-public class ForgeServerLauncher {
+public class WindowsLauncher {
 
     /**
      * 主程序入口
