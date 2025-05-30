@@ -36,5 +36,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: forge-server-launcher-action
-          path: target/ForgeServerLauncher-*.jar
+          path: target/*.jar
           if-no-files-found: warn

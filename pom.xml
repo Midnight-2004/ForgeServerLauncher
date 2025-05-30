@@ -5,7 +5,7 @@
 
     <groupId>top.zeronight</groupId>
     <artifactId>ForgeServerLauncher</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>Forge Server Launcher</name>
     <description>A launcher for Forge/NeoForge Minecraft servers.</description>
     <url>https://github.com/Midnight-2004/ForgeServerLauncher</url>
