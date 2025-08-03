@@ -107,6 +107,22 @@ public class ForgeServerLauncher {
             jvmArgs.add(arg);
         }
 
+        // 从user_jvm_args.txt读取JVM参数
+        List<String> userJvmArgs = readUserJvmArgs("user_jvm_args.txt");
+        
+        // 从当前进程参数中提取-Xmx和-Xms参数
+        List<String> xmxXmsArgs = new ArrayList<>();
+        for (String arg : jvmArgs) {
+            if (arg.startsWith("-Xmx") || arg.startsWith("-Xms")) {
+                xmxXmsArgs.add(arg);
+            }
+        }
+        
+        // 合并user_jvm_args.txt中的参数和-Xmx/-Xms参数
+        List<String> additionalJvmArgs = new ArrayList<>();
+        additionalJvmArgs.addAll(userJvmArgs);
+        additionalJvmArgs.addAll(xmxXmsArgs);
+
         // 处理传入的额外参数，跳过-jar及其后的一个参数
         List<String> additionalArgs = new ArrayList<>();
         String noguiArg = null;
@@ -122,7 +138,7 @@ public class ForgeServerLauncher {
         // 构造最终参数列表
         List<String> finalArguments = new ArrayList<>();
         finalArguments.add(javaExecutable);       // 使用真实 java 路径
-        finalArguments.addAll(jvmArgs);     // 添加 JVM 参数（如 -Xmx4G）
+        finalArguments.addAll(additionalJvmArgs); // 添加 user_jvm_args.txt 中的参数和 -Xmx/-Xms 参数
 
         skipNext = (jarIndex != -1);
         noguiArg = null;
@@ -345,6 +361,46 @@ public class ForgeServerLauncher {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 从user_jvm_args.txt文件中读取JVM参数，忽略#后的注释
+     * @param filePath 文件路径
+     * @return JVM参数列表
+     */
+    private static List<String> readUserJvmArgs(String filePath) {
+        List<String> jvmArgs = new ArrayList<>();
+        File file = new File(filePath);
+        
+        if (!file.exists()) {
+            System.out.println("user_jvm_args.txt not found, using default JVM arguments.");
+            return jvmArgs;
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // 忽略#后的注释
+                int commentIndex = line.indexOf('#');
+                if (commentIndex != -1) {
+                    line = line.substring(0, commentIndex);
+                }
+                line = line.trim();
+                
+                if (!line.isEmpty()) {
+                    // 使用正则表达式分割参数，考虑引号内的空格
+                    Matcher matcher = Pattern.compile("[^\\s\"]+|\"([^\"]*)\"").matcher(line);
+                    while (matcher.find()) {
+                        String token = matcher.group(1) != null ? matcher.group(1) : matcher.group();
+                        jvmArgs.add(token);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading user_jvm_args.txt: " + e.getMessage());
+        }
+        
+        return jvmArgs;
     }
 
     /**
