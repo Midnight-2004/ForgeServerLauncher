@@ -8,6 +8,17 @@ import java.util.List;
 
 public class ForgeServerLauncher {
 
+    // ANSI颜色代码
+    private static final String RESET = "\u001B[0m";
+    private static final String BLACK = "\u001B[30m";
+    private static final String RED = "\u001B[31m";
+    private static final String GREEN = "\u001B[32m";
+    private static final String YELLOW = "\u001B[33m";
+    private static final String BLUE = "\u001B[34m";
+    private static final String PURPLE = "\u001B[35m";
+    private static final String CYAN = "\u001B[36m";
+    private static final String WHITE = "\u001B[37m";
+
     /**
      * 主程序入口
      * 该程序主要用于查找并启动最新的Forge或NeoForge版本
@@ -16,7 +27,7 @@ public class ForgeServerLauncher {
      */
     public static void main(String[] args) {
         // 打印当前工作目录，用于调试和确认程序运行环境
-        System.out.println("Current working directory: " + new File(".").getAbsolutePath());
+        System.out.println(GREEN + "Current working directory: " + new File(".").getAbsolutePath() + RESET);
 
         // 定义Forge和NeoForge的目录路径
         String neoforgePath = "libraries/net/neoforged/neoforge";
@@ -31,23 +42,23 @@ public class ForgeServerLauncher {
 
         // 检查NeoForge目录是否存在并添加符合条件的版本目录
         if (neoforgeDir.exists() && neoforgeDir.isDirectory()) {
-            System.out.println("Found NeoForge directory: " + neoforgeDir.getAbsolutePath());
+            System.out.println(CYAN + "Found NeoForge directory: " + neoforgeDir.getAbsolutePath() + RESET);
             versionDirs.addAll(findVersionDirectories(neoforgeDir));
         } else {
-            System.out.println("NeoForge directory not found or is not a directory: " + neoforgeDir.getAbsolutePath());
+            System.out.println(YELLOW + "NeoForge directory not found or is not a directory: " + neoforgeDir.getAbsolutePath() + RESET);
         }
 
         // 检查Forge目录是否存在并添加符合条件的版本目录
         if (forgeDir.exists() && forgeDir.isDirectory()) {
-            System.out.println("Found Forge directory: " + forgeDir.getAbsolutePath());
+            System.out.println(CYAN + "Found Forge directory: " + forgeDir.getAbsolutePath() + RESET);
             versionDirs.addAll(findVersionDirectories(forgeDir));
         } else {
-            System.out.println("Forge directory not found or is not a directory: " + forgeDir.getAbsolutePath());
+            System.out.println(YELLOW + "Forge directory not found or is not a directory: " + forgeDir.getAbsolutePath() + RESET);
         }
 
         // 如果没有找到任何有效的版本目录，打印提示并退出程序
         if (versionDirs.isEmpty()) {
-            System.out.println("No valid version directories found.");
+            System.out.println(RED + "No valid version directories found." + RESET);
             return;
         }
 
@@ -57,14 +68,14 @@ public class ForgeServerLauncher {
         // 定位并读取unix_args.txt文件
         File unixArgsFile = new File(latestVersionDir, "unix_args.txt");
         if (!unixArgsFile.exists()) {
-            System.out.println("unix_args.txt not found in the latest version directory.");
+            System.out.println(RED + "unix_args.txt not found in the latest version directory." + RESET);
             return;
         }
 
         // 从文件中读取启动参数
         List<String> launchArguments = readArgumentsFromFile(unixArgsFile.getAbsolutePath());
         if (launchArguments.isEmpty()) {
-            System.out.println("Failed to read arguments from unix_args.txt.");
+            System.out.println(RED + "Failed to read arguments from unix_args.txt." + RESET);
             return;
         }
 
@@ -79,19 +90,19 @@ public class ForgeServerLauncher {
         String javaExecutable;
 
         if (fullCommandLine.isEmpty()) {
-            System.err.println("Failed to retrieve command line arguments.");
+            System.err.println(RED + "Failed to retrieve command line arguments." + RESET);
             return;
         }
 
         if (info.command().isPresent()) {
             // 直接使用当前运行的 Java 可执行路径（如 /usr/bin/java 或 C:\...\java.exe）
             javaExecutable = info.command().get();
-            System.out.println("Using Java from current process: " + javaExecutable);
+            System.out.println(GREEN + "Using Java from current process: " + javaExecutable + RESET);
         } else {
             // 回退到 Java Home
             String javaHome = System.getProperty("java.home");
             javaExecutable = javaHome + File.separator + "bin" + File.separator + "java";
-            System.out.println("Falling back to JAVA_HOME: " + javaExecutable);
+            System.out.println(YELLOW + "Falling back to JAVA_HOME: " + javaExecutable + RESET);
         }
 
         // 提取 JVM 参数（直到 -jar 为止）
@@ -173,7 +184,7 @@ public class ForgeServerLauncher {
         try {
             // 获取JAR文件所在目录并设置为工作目录
             File jarDir = new File(ForgeServerLauncher.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
-            System.out.println("Working directory for subprocess: " + jarDir.getAbsolutePath());
+            System.out.println(CYAN + "Working directory for subprocess: " + jarDir.getAbsolutePath() + RESET);
 
             // 使用ProcessBuilder启动子进程
             ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
@@ -198,7 +209,7 @@ public class ForgeServerLauncher {
                 try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
                     String line;
                     while ((line = errorReader.readLine()) != null) {
-                        System.err.println("ERROR: " + line);
+                        System.err.println(RED + "ERROR: " + line + RESET);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -227,7 +238,7 @@ public class ForgeServerLauncher {
 
             // 等待子进程结束并获取退出码然后强制结束进程
             int exitCode = process.waitFor();
-            System.out.println("Process exited with code: " + exitCode);
+            System.out.println(GREEN + "Process exited with code: " + exitCode + RESET);
             System.exit(0);
 
         } catch (Exception e) {
@@ -271,12 +282,12 @@ public class ForgeServerLauncher {
         List<File> versionDirs = new ArrayList<>();
         File[] files = parentDir.listFiles();
         if (files == null) {
-            System.err.println("Unable to list files in directory: " + parentDir.getAbsolutePath());
+            System.err.println(RED + "Unable to list files in directory: " + parentDir.getAbsolutePath() + RESET);
             return versionDirs; // 返回空列表
         }
         for (File dir : files) {
             if (dir.isDirectory()) {
-                System.out.println("Checking version directory candidate: " + dir.getAbsolutePath());
+                System.out.println(CYAN + "Checking version directory candidate: " + dir.getAbsolutePath() + RESET);
                 if (isValidVersionDirectory(dir)) {
                     versionDirs.add(dir);
                 }
@@ -315,7 +326,7 @@ public class ForgeServerLauncher {
      */
     private static File getLatestVersionDirectory(List<File> versionDirs) {
         if (versionDirs.isEmpty()) {
-            throw new IllegalArgumentException("Version directory list is empty.");
+            throw new IllegalArgumentException(RED + "Version directory list is empty." + RESET);
         }
 
         File latestVersionDir = null;
@@ -373,7 +384,7 @@ public class ForgeServerLauncher {
         File file = new File(filePath);
         
         if (!file.exists()) {
-            System.out.println("user_jvm_args.txt not found, using default JVM arguments.");
+            System.out.println(YELLOW + "user_jvm_args.txt not found, using default JVM arguments." + RESET);
             return jvmArgs;
         }
         
@@ -397,7 +408,7 @@ public class ForgeServerLauncher {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Error reading user_jvm_args.txt: " + e.getMessage());
+            System.err.println(RED + "Error reading user_jvm_args.txt: " + e.getMessage() + RESET);
         }
         
         return jvmArgs;
@@ -424,7 +435,7 @@ public class ForgeServerLauncher {
                         if (argFile.exists()) {
                             arguments.addAll(readArgumentsFromFile(argFile.getAbsolutePath()));
                         } else {
-                            System.err.println("Arg file not found: " + argFilePath);
+                            System.err.println(RED + "Arg file not found: " + argFilePath + RESET);
                         }
                     } else {
                         arguments.add(token);
