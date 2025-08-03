@@ -177,15 +177,6 @@ public class ForgeServerLauncher {
             finalArguments.add(noguiArg);
         }
 
-        // 添加JLine终端支持参数以启用颜色输出（适用于Forge和NeoForge）
-        finalArguments.add("--add-modules=jdk.incubator.vector");
-        finalArguments.add("--add-opens=java.base/java.util.concurrent=ALL-UNNAMED");
-        finalArguments.add("--add-opens=java.base/java.lang=ALL-UNNAMED");
-        finalArguments.add("--add-opens=java.base/java.lang.invoke=ALL-UNNAMED");
-        finalArguments.add("--add-opens=java.base/java.io=ALL-UNNAMED");
-        finalArguments.add("--add-opens=java.base/java.nio=ALL-UNNAMED");
-        finalArguments.add("--add-opens=java.base/sun.nio.ch=ALL-UNNAMED");
-
         // 替换 launchArguments
         launchArguments.clear();
         launchArguments.addAll(finalArguments);
@@ -198,11 +189,6 @@ public class ForgeServerLauncher {
             // 使用ProcessBuilder启动子进程
             ProcessBuilder processBuilder = new ProcessBuilder(launchArguments);
             processBuilder.directory(jarDir); // 设置工作目录
-            
-            // 设置环境变量以支持颜色输出
-            Map<String, String> environment = processBuilder.environment();
-            environment.put("TERM", "xterm-256color");
-            environment.put("FORCE_COLOR", "1");
 
             Process process = processBuilder.start();
 
